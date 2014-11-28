@@ -34,7 +34,6 @@ public class ClientHandlerThread extends Thread {
 	}
 
 	private List<File> receiveFiles() throws IOException {
-		List<String> files = new ArrayList<>();
 		String line;
 		StringBuilder sb = new StringBuilder();
 
@@ -50,12 +49,15 @@ public class ClientHandlerThread extends Thread {
 			if(isStartOfFile(line) && isEndOfFile(line)){
 				//means that the file has a one line content
 				String[] tokens = line.split("###");
-				System.out.println("Name: " + tokens[0]);
-				System.out.println("Time: " + new Timestamp(Long.valueOf(tokens[1])));
+				filename = tokens[0];
+				dateModified = new Timestamp(Long.valueOf(tokens[1]));
+				System.out.println("Name: " + filename);
+				System.out.println("Time: " + dateModified);
 				line = getFirstLineContent(line);
 				
 				sb.append(removeEndFileDelimiter(line));
-				files.add(sb.toString());
+				System.out.println(sb.toString());
+				//ADD SYNCING PROCESS HERE AND DOWN THERE
 				sb = new StringBuilder();
 			}
 			else if(isStartOfFile(line)){
@@ -71,7 +73,8 @@ public class ClientHandlerThread extends Thread {
 				// if reader sees a end of file delimeter, it proceeds to build
 				// the next file
 				sb.append(removeEndFileDelimiter(line));
-				files.add(sb.toString());
+				System.out.println(sb.toString());
+				//ADD SYNCING PROCESS HERE AND UP THERE
 				sb = new StringBuilder();
 			}
 			else //middle liners in a file
@@ -83,10 +86,6 @@ public class ClientHandlerThread extends Thread {
 			
 		}
 
-		for (int i = 0; i < files.size(); i++) {
-			System.out.println(i);
-			System.out.println(files.get(i));
-		}
 		return null;
 	}
 	
