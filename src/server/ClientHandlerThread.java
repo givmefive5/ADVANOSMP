@@ -1,5 +1,7 @@
 package server;
 
+import indie.ResponseHandler;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -7,11 +9,10 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.List;
 
 public class ClientHandlerThread extends Thread {
-	private Socket socket;
+	private final Socket socket;
 	PrintWriter out;
 	BufferedReader in;
 
@@ -44,77 +45,48 @@ public class ClientHandlerThread extends Thread {
 				// exits the loop after all files from client has been sent
 				break;
 			}
-			
-			
-			if(isStartOfFile(line) && isEndOfFile(line)){
-				//means that the file has a one line content
+
+			if (ResponseHandler.isStartOfFile(line)
+					&& ResponseHandler.isEndOfFile(line)) {
+				// means that the file has a one line content
 				String[] tokens = line.split("###");
 				filename = tokens[0];
 				dateModified = new Timestamp(Long.valueOf(tokens[1]));
 				System.out.println("Name: " + filename);
 				System.out.println("Time: " + dateModified);
-				line = getFirstLineContent(line);
-				
-				sb.append(removeEndFileDelimiter(line));
+				line = ResponseHandler.getFirstLineContent(line);
+
+				sb.append(ResponseHandler.removeEndFileDelimiter(line));
 				System.out.println(sb.toString());
-				//ADD SYNCING PROCESS HERE AND DOWN THERE
+				// ADD SYNCING PROCESS HERE AND DOWN THERE
 				sb = new StringBuilder();
-			}
-			else if(isStartOfFile(line)){
-				//means that the file has more than one line
-				//extracts the file name and time modified
+			} else if (ResponseHandler.isStartOfFile(line)) {
+				// means that the file has more than one line
+				// extracts the file name and time modified
 				String[] tokens = line.split("###");
 				System.out.println("Name: " + tokens[0]);
-				System.out.println("Time: " + new Timestamp(Long.valueOf(tokens[1])));
-				line = getFirstLineContent(line);
+				System.out.println("Time: "
+						+ new Timestamp(Long.valueOf(tokens[1])));
+				line = ResponseHandler.getFirstLineContent(line);
 				sb.append(line);
-			}
-			else if (isEndOfFile(line)) {
+			} else if (ResponseHandler.isEndOfFile(line)) {
 				// if reader sees a end of file delimeter, it proceeds to build
 				// the next file
-				sb.append(removeEndFileDelimiter(line));
+				sb.append(ResponseHandler.removeEndFileDelimiter(line));
 				System.out.println(sb.toString());
-				//ADD SYNCING PROCESS HERE AND UP THERE
+				// ADD SYNCING PROCESS HERE AND UP THERE
 				sb = new StringBuilder();
-			}
-			else //middle liners in a file
+			} else
+				// middle liners in a file
 				sb.append(line);
 
-			if (line != null && !isEndOfFile(line)){
+			if (line != null && !ResponseHandler.isEndOfFile(line)) {
 				sb.append("\n");
 			}
-			
+
 		}
 
 		return null;
 	}
-	
-	private boolean isEndOfFile(String  s){
-		
-		if (s.substring(s.length() - 5, s.length())
-				.equals("~!@#$"))
-			return true;
-		return false;
-	}
-	
-	private String removeEndFileDelimiter(String s){
-		if(s.length() == 5)
-			return "";
-		
-		return s.substring(0, s.length() -5);
-	}
-	
-	private boolean isStartOfFile(String s){
-		if(s.split("###").length >= 2)
-			return true;
-		return false;
-	}
-	
-	private String getFirstLineContent(String s){
-		String[] tokens = s.split("###");
-		if(tokens.length == 2)
-			return "";
-		else
-			return tokens[2];
-	}
+
 }
