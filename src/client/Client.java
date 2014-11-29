@@ -12,6 +12,8 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.sql.Timestamp;
 
+import server.ServerFileManager;
+
 public class Client {
 	private final Socket socket;
 
@@ -22,7 +24,7 @@ public class Client {
 
 	public Client(String folderPath) throws UnknownHostException, IOException {
 
-		Client.folderPath = folderPath;
+		Client.folderPath = folderPath + "/";
 
 		String address = "localhost";
 		int portNumber = 4441;
@@ -41,14 +43,13 @@ public class Client {
 		String line;
 		StringBuilder sb = new StringBuilder();
 
-		String filename;
+		String filename = null;
 		Timestamp dateModified;
 		while ((line = in.readLine()) != null) {
 			if (line.equals("END OF TRANSACTION")) {
 				// exits the loop after all files from client has been sent
 				break;
 			}
-
 			if (ResponseHandler.isStartOfFile(line)
 					&& ResponseHandler.isEndOfFile(line)) {
 				// means that the file has a one line content
@@ -61,7 +62,10 @@ public class Client {
 
 				sb.append(ResponseHandler.removeEndFileDelimiter(line));
 				System.out.println(sb.toString());
-				// ADD SYNCING PROCESS HERE AND DOWN THERE
+				File f = new File(folderPath + filename);
+				ServerFileManager.writeToFile(f, sb.toString());
+				System.out.println("Finished writing " + f.getAbsolutePath());
+
 				sb = new StringBuilder();
 			} else if (ResponseHandler.isStartOfFile(line)) {
 				// means that the file has more than one line
@@ -70,6 +74,8 @@ public class Client {
 				System.out.println("Name: " + tokens[0]);
 				System.out.println("Time: "
 						+ new Timestamp(Long.valueOf(tokens[1])));
+				filename = tokens[0];
+				dateModified = new Timestamp(Long.valueOf(tokens[1]));
 				line = ResponseHandler.getFirstLineContent(line);
 				sb.append(line);
 			} else if (ResponseHandler.isEndOfFile(line)) {
@@ -77,7 +83,9 @@ public class Client {
 				// the next file
 				sb.append(ResponseHandler.removeEndFileDelimiter(line));
 				System.out.println(sb.toString());
-				// ADD SYNCING PROCESS HERE AND UP THERE
+				File f = new File(folderPath + filename);
+				ServerFileManager.writeToFile(f, sb.toString());
+				System.out.println("Finished writing " + f.getAbsolutePath());
 				sb = new StringBuilder();
 			} else
 				// middle liners in a file

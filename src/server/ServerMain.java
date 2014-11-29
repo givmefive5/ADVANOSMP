@@ -12,6 +12,8 @@ public class ServerMain {
 		ServerSocket serverSocket = new ServerSocket(portNumber);
 		System.out.println("Running on port " + portNumber);
 		while (true) {
+			ServerFileManager.initializeFileLocks();
+
 			Socket socket = serverSocket.accept();
 			new ClientHandlerThread(socket).start();
 		}

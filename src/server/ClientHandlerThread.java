@@ -41,8 +41,8 @@ public class ClientHandlerThread extends Thread {
 	private void sendFiles(List<File> files) throws IOException {
 		// simply sends all of the files to the server
 		String folderPath = "Server";
-		File folder = new File(folderPath);
-		for (File f : folder.listFiles()) {
+		for (File f : files) {
+			System.out.println("Sending: " + f.getName());
 			// signal that that's the end of a file
 			out.println(f.getName() + "###" + f.lastModified() + "###"
 					+ FileManager.readFile(f) + "~!@#$");
@@ -53,12 +53,12 @@ public class ClientHandlerThread extends Thread {
 
 	private List<File> receiveFiles() throws IOException {
 		List<File> filesToSendBack = new ArrayList<>();
-
+		List<String> filenamesFromClient = new ArrayList<>();
 		String line;
 		StringBuilder sb = new StringBuilder();
 
-		String filename;
-		Timestamp dateModified;
+		String filename = null;
+		Timestamp dateModified = null;
 		while ((line = in.readLine()) != null) {
 			if (line.equals("END OF TRANSACTION")) {
 				// exits the loop after all files from client has been sent
@@ -73,16 +73,26 @@ public class ClientHandlerThread extends Thread {
 				dateModified = new Timestamp(Long.valueOf(tokens[1]));
 				System.out.println("Name: " + filename);
 				System.out.println("Time: " + dateModified);
+
+				filenamesFromClient.add(filename);
 				line = ResponseHandler.getFirstLineContent(line);
 
 				sb.append(ResponseHandler.removeEndFileDelimiter(line));
 				System.out.println(sb.toString());
-				// ADD SYNCING PROCESS HERE AND DOWN THERE
+				File f = syncFile(filename, dateModified, sb.toString());
+				if (f != null)
+					filesToSendBack.add(f);
+
 				sb = new StringBuilder();
 			} else if (ResponseHandler.isStartOfFile(line)) {
 				// means that the file has more than one line
 				// extracts the file name and time modified
 				String[] tokens = line.split("###");
+				filename = tokens[0];
+				dateModified = new Timestamp(Long.valueOf(tokens[1]));
+
+				filenamesFromClient.add(filename);
+
 				System.out.println("Name: " + tokens[0]);
 				System.out.println("Time: "
 						+ new Timestamp(Long.valueOf(tokens[1])));
@@ -93,7 +103,10 @@ public class ClientHandlerThread extends Thread {
 				// the next file
 				sb.append(ResponseHandler.removeEndFileDelimiter(line));
 				System.out.println(sb.toString());
-				// ADD SYNCING PROCESS HERE AND UP THERE
+				File f = syncFile(filename, dateModified, sb.toString());
+				if (f != null)
+					filesToSendBack.add(f);
+
 				sb = new StringBuilder();
 			} else
 				// middle liners in a file
@@ -104,8 +117,32 @@ public class ClientHandlerThread extends Thread {
 			}
 
 		}
-		// return filesToSendBack;
-		return null;
+
+		List<File> filesOfServer = ServerFileManager
+				.findFilesFromServerToGiveBackToClient(filenamesFromClient);
+		filesToSendBack.addAll(filesOfServer);
+		return filesToSendBack;
+	}
+
+	private File syncFile(String filename, Timestamp t, String content)
+			throws IOException {
+
+		// lock for mutex for critical section
+		ServerFileManager.acquireLockOfFile(filename);
+		// writes if client has a later copy.
+		if (ServerFileManager.clientHasALaterCopy(filename, t)) {
+			System.out.println("Receiving: " + filename + " " + t);
+			File f = new File(ServerFileManager.folderLocation + filename);
+			ServerFileManager.writeToFile(f, content);
+			ServerFileManager.releaseLockOfFile(filename);
+			return null;
+		} else {
+			// adds it to a file list that will be sent back to the client
+			File f = new File(ServerFileManager.folderLocation + filename);
+			ServerFileManager.releaseLockOfFile(filename);
+			return f;
+		}
+
 	}
 
 }
