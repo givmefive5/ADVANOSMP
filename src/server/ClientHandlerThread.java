@@ -1,5 +1,6 @@
 package server;
 
+import indie.FileManager;
 import indie.ResponseHandler;
 
 import java.io.BufferedReader;
@@ -9,6 +10,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ClientHandlerThread extends Thread {
@@ -27,6 +29,8 @@ public class ClientHandlerThread extends Thread {
 
 		try {
 			List<File> files = receiveFiles();
+
+			sendFiles(files);
 		} catch (IOException e) {
 			// Connection dropped
 			e.printStackTrace();
@@ -34,7 +38,22 @@ public class ClientHandlerThread extends Thread {
 		}
 	}
 
+	private void sendFiles(List<File> files) throws IOException {
+		// simply sends all of the files to the server
+		String folderPath = "Server";
+		File folder = new File(folderPath);
+		for (File f : folder.listFiles()) {
+			// signal that that's the end of a file
+			out.println(f.getName() + "###" + f.lastModified() + "###"
+					+ FileManager.readFile(f) + "~!@#$");
+		}
+		// signal the server that no more files will be sent
+		out.println("END OF TRANSACTION");
+	}
+
 	private List<File> receiveFiles() throws IOException {
+		List<File> filesToSendBack = new ArrayList<>();
+
 		String line;
 		StringBuilder sb = new StringBuilder();
 
@@ -85,7 +104,7 @@ public class ClientHandlerThread extends Thread {
 			}
 
 		}
-
+		// return filesToSendBack;
 		return null;
 	}
 
