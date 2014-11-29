@@ -42,7 +42,6 @@ public class ClientHandlerThread extends Thread {
 		// simply sends all of the files to the server
 		String folderPath = "Server";
 		for (File f : files) {
-			System.out.println("Sending: " + f.getName());
 			// signal that that's the end of a file
 			out.println(f.getName() + "###" + f.lastModified() + "###"
 					+ FileManager.readFile(f) + "~!@#$");
@@ -134,6 +133,7 @@ public class ClientHandlerThread extends Thread {
 			System.out.println("Receiving: " + filename + " " + t);
 			File f = new File(ServerFileManager.folderLocation + filename);
 			ServerFileManager.writeToFile(f, content);
+			System.out.println("Finished writing " + f.getAbsolutePath());
 			ServerFileManager.releaseLockOfFile(filename);
 			return null;
 		} else {
