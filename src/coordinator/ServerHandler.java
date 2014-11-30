@@ -38,6 +38,10 @@ public class ServerHandler {
 		return null;
 	}
 
+	public static ServerInfo get(int index) {
+		return serverList.get(index);
+	}
+
 	public static void setServerActive(String addressWithPortNumber) {
 		ServerInfo si = get(addressWithPortNumber);
 		int index = serverList.indexOf(si);
