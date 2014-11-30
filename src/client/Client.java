@@ -12,8 +12,6 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.sql.Timestamp;
 
-import coordinator.CoordiFileManager;
-
 public class Client {
 	private final Socket socket;
 
@@ -63,7 +61,7 @@ public class Client {
 				sb.append(ResponseHandler.removeEndFileDelimiter(line));
 				System.out.println(sb.toString());
 				File f = new File(folderPath + filename);
-				CoordiFileManager.writeToFile(f, sb.toString());
+				FileManager.writeToFile(f, sb.toString());
 				System.out.println("Finished writing " + f.getAbsolutePath());
 
 				sb = new StringBuilder();
@@ -84,7 +82,7 @@ public class Client {
 				sb.append(ResponseHandler.removeEndFileDelimiter(line));
 				System.out.println(sb.toString());
 				File f = new File(folderPath + filename);
-				CoordiFileManager.writeToFile(f, sb.toString());
+				FileManager.writeToFile(f, sb.toString());
 				System.out.println("Finished writing " + f.getAbsolutePath());
 				sb = new StringBuilder();
 			} else

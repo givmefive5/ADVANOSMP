@@ -20,7 +20,7 @@ public class ServerMain {
 
 		String myIPAddress = "localhost";
 		int myPortNumber = Integer.valueOf(args[0]);
-		folderPath = args[1];
+		folderPath = args[1] + "/";
 
 		serverSocket = new ServerSocket(myPortNumber);
 
@@ -41,10 +41,15 @@ public class ServerMain {
 	}
 
 	private static void handleCoordinatorRequests() throws IOException {
-		while (true) {
+		Socket socket = serverSocket.accept();
+		PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+		BufferedReader in = new BufferedReader(new InputStreamReader(
+				socket.getInputStream()));
 
-			Socket socket = serverSocket.accept();
+		String line;
+		while ((line = in.readLine()) != null) {
 
 		}
+
 	}
 }
