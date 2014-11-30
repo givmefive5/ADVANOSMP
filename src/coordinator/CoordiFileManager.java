@@ -1,4 +1,4 @@
-package server;
+package coordinator;
 
 import indie.FileManager;
 
@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class ServerFileManager extends FileManager {
+public class CoordiFileManager extends FileManager {
 
 	public static String folderLocation = "Server/";
 

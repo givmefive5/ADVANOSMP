@@ -1,4 +1,4 @@
-package server;
+package coordinator;
 
 import indie.FileManager;
 import indie.ResponseHandler;
@@ -117,7 +117,7 @@ public class ClientHandlerThread extends Thread {
 
 		}
 
-		List<File> filesOfServer = ServerFileManager
+		List<File> filesOfServer = CoordiFileManager
 				.findFilesFromServerToGiveBackToClient(filenamesFromClient);
 		filesToSendBack.addAll(filesOfServer);
 		return filesToSendBack;
@@ -127,19 +127,19 @@ public class ClientHandlerThread extends Thread {
 			throws IOException {
 
 		// lock for mutex for critical section
-		ServerFileManager.acquireLockOfFile(filename);
+		CoordiFileManager.acquireLockOfFile(filename);
 		// writes if client has a later copy.
-		if (ServerFileManager.clientHasALaterCopy(filename, t)) {
+		if (CoordiFileManager.clientHasALaterCopy(filename, t)) {
 			System.out.println("Receiving: " + filename + " " + t);
-			File f = new File(ServerFileManager.folderLocation + filename);
-			ServerFileManager.writeToFile(f, content);
+			File f = new File(CoordiFileManager.folderLocation + filename);
+			CoordiFileManager.writeToFile(f, content);
 			System.out.println("Finished writing " + f.getAbsolutePath());
-			ServerFileManager.releaseLockOfFile(filename);
+			CoordiFileManager.releaseLockOfFile(filename);
 			return null;
 		} else {
 			// adds it to a file list that will be sent back to the client
-			File f = new File(ServerFileManager.folderLocation + filename);
-			ServerFileManager.releaseLockOfFile(filename);
+			File f = new File(CoordiFileManager.folderLocation + filename);
+			CoordiFileManager.releaseLockOfFile(filename);
 			return f;
 		}
 

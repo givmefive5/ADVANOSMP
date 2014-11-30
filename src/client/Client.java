@@ -12,7 +12,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.sql.Timestamp;
 
-import server.ServerFileManager;
+import coordinator.CoordiFileManager;
 
 public class Client {
 	private final Socket socket;
@@ -63,7 +63,7 @@ public class Client {
 				sb.append(ResponseHandler.removeEndFileDelimiter(line));
 				System.out.println(sb.toString());
 				File f = new File(folderPath + filename);
-				ServerFileManager.writeToFile(f, sb.toString());
+				CoordiFileManager.writeToFile(f, sb.toString());
 				System.out.println("Finished writing " + f.getAbsolutePath());
 
 				sb = new StringBuilder();
@@ -84,7 +84,7 @@ public class Client {
 				sb.append(ResponseHandler.removeEndFileDelimiter(line));
 				System.out.println(sb.toString());
 				File f = new File(folderPath + filename);
-				ServerFileManager.writeToFile(f, sb.toString());
+				CoordiFileManager.writeToFile(f, sb.toString());
 				System.out.println("Finished writing " + f.getAbsolutePath());
 				sb = new StringBuilder();
 			} else
@@ -100,6 +100,7 @@ public class Client {
 
 	private void sendFiles() throws IOException {
 		// simply sends all of the files to the server
+		out.println("Client");
 		File folder = new File(folderPath);
 		for (File f : folder.listFiles()) {
 			// signal that that's the end of a file
@@ -109,5 +110,4 @@ public class Client {
 		// signal the server that no more files will be sent
 		out.println("END OF TRANSACTION");
 	}
-
 }
