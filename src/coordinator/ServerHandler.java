@@ -73,6 +73,12 @@ public class ServerHandler {
 		serverList.set(index, si);
 	}
 
+	public static void addFile(int index, String filename) {
+		ServerInfo si = serverList.get(index);
+		si.addFilename(filename);
+		serverList.set(index, si);
+	}
+
 	public static boolean hasTwoThirdServersOff() {
 		if (activeCount * 1.0 / totalServers < 2.0 / 3)
 			return true;
@@ -87,5 +93,9 @@ public class ServerHandler {
 			return twoThirds + 1;
 		else
 			return twoThirds;
+	}
+
+	public static int totalNumberOfServers() {
+		return totalServers;
 	}
 }

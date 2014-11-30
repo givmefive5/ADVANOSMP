@@ -13,9 +13,6 @@ public class ServerMain {
 	public static ServerSocket serverSocket;
 	public static String folderPath;
 
-	private static BufferedReader in;
-	private static PrintWriter out;
-
 	public static void main(String[] args) throws IOException {
 
 		String myIPAddress = "localhost";
@@ -32,8 +29,9 @@ public class ServerMain {
 	private static void notifyCoordinator(String myIPAddress, int myPortNumber)
 			throws UnknownHostException, IOException {
 		Socket socket = new Socket("localhost", 4441);
-		out = new PrintWriter(socket.getOutputStream(), true);
-		in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+		PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+		BufferedReader in = new BufferedReader(new InputStreamReader(
+				socket.getInputStream()));
 
 		out.println(myIPAddress + ":" + myPortNumber);
 		// connector between server and coordi only.
@@ -49,11 +47,16 @@ public class ServerMain {
 					socket.getInputStream()));
 			String firstLine = in.readLine();
 			if (firstLine.equals("SAVE FILE")) {
-				new ServerSaveFileThread(socket).start();
+				System.out.println("SAVE FILE");
+				// String line;
+				// while ((line = in.readLine()) != null)
+				// System.out.println(line);
+				new ServerSaveFileThread(socket, in).start();
 			} else if (firstLine.equals("LOAD FILE")) {
 				// server threads would send out IDs along with the word Server
 				new ServerLoadFileThread(socket).start();
 			}
 		}
 	}
+
 }

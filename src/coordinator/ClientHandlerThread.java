@@ -133,6 +133,7 @@ public class ClientHandlerThread extends Thread {
 			System.out.println("Receiving: " + filename + " " + t);
 			File f = new File(CoordiFileManager.folderLocation + filename);
 			CoordiFileManager.writeToFile(f, content);
+			CoordiServerFileManager.saveFile(filename, content);
 			System.out.println("Finished writing " + f.getAbsolutePath());
 			CoordiFileManager.releaseLockOfFile(filename);
 			return null;

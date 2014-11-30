@@ -23,12 +23,20 @@ public class CoordiServerFileManager {
 
 		int count = 0;
 		while (count < twoThirdsOfServers) {
-			ServerInfo si = ServerHandler.get(indexForSavingFile + count);
+			int index = indexForSavingFile + count;
+			if (index >= ServerHandler.totalNumberOfServers()) {
+				index = index - ServerHandler.totalNumberOfServers();
+			}
+			ServerInfo si = ServerHandler.get(index);
 			saveFileContent(si.getIpAddress(), si.getPortNumber(), filename,
 					content);
+			ServerHandler.addFile(index, filename);
 			count++;
 		}
+
 		indexForSavingFile++;
+		if (indexForSavingFile == ServerHandler.totalNumberOfServers())
+			indexForSavingFile = 0;
 	}
 
 	private static void saveFileContent(String ipAddress, int portNumber,
@@ -39,17 +47,17 @@ public class CoordiServerFileManager {
 		PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 		BufferedReader in = new BufferedReader(new InputStreamReader(
 				socket.getInputStream()));
-
 		out.println("SAVE FILE");
-		// signal that that's the end of a file
-		out.println(filename + "###" + content + "~!@#$");
+
+		out.println(filename + "###" + System.currentTimeMillis() + "###"
+				+ content + "~!@#$");
 		// signal the server that no more files will be sent
 		out.println("END OF TRANSACTION");
-
 		String line;
 		while ((line = in.readLine()) != null) {
-			if (line.equals("FINISHED"))
+			if (line.equals("FINISHED")) {
 				break;
+			}
 		}
 		socket.close();
 	}
