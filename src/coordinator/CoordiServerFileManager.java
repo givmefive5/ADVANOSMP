@@ -15,4 +15,7 @@ public class CoordiServerFileManager {
 
 	}
 
+	public static String loadFileContent(String filename) {
+		return null;
+	}
 }

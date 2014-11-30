@@ -75,4 +75,13 @@ public class ServerHandler {
 		else
 			return false;
 	}
+
+	public static int twoThirdsOfTotalServers() {
+		int twoThirds = totalServers * 2 / 3;
+
+		if (twoThirds * 3 / 2 < totalServers)
+			return twoThirds + 1;
+		else
+			return twoThirds;
+	}
 }
