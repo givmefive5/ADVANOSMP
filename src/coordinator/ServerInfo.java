@@ -9,7 +9,7 @@ public class ServerInfo {
 	private String ipAddress;
 	private int portNumber;
 	private boolean isAlive;
-	private final List<String> filenames;
+	private final List<FileInfo> fileInfos;
 
 	public ServerInfo(String addressWithPortNumber, String ipAddress,
 			int portNumber, boolean isAlive) {
@@ -19,7 +19,7 @@ public class ServerInfo {
 		this.portNumber = portNumber;
 		this.isAlive = isAlive;
 
-		filenames = new ArrayList<>();
+		fileInfos = new ArrayList<>();
 	}
 
 	public ServerInfo(String ipAddress, int portNumber, boolean isAlive) {
@@ -28,7 +28,7 @@ public class ServerInfo {
 		this.portNumber = portNumber;
 		this.isAlive = isAlive;
 
-		filenames = new ArrayList<>();
+		fileInfos = new ArrayList<>();
 	}
 
 	public String getAddressWithPortNumber() {
@@ -39,8 +39,8 @@ public class ServerInfo {
 		this.addressWithPortNumber = addressWithPortNumber;
 	}
 
-	public List<String> getFilenames() {
-		return filenames;
+	public List<FileInfo> getFileInfos() {
+		return fileInfos;
 	}
 
 	public String getIpAddress() {
@@ -67,7 +67,7 @@ public class ServerInfo {
 		this.isAlive = isAlive;
 	}
 
-	public void addFilename(String filename) {
-		filenames.add(filename);
+	public void addFileInfo(FileInfo fileInfo) {
+		fileInfos.add(fileInfo);
 	}
 }

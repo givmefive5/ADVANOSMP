@@ -66,16 +66,17 @@ public class ServerHandler {
 		activeCount--;
 	}
 
-	public static void addFile(String addressWithPortNumber, String filename) {
+	public static void addFileInfo(String addressWithPortNumber,
+			FileInfo fileInfo) {
 		ServerInfo si = get(addressWithPortNumber);
 		int index = serverList.indexOf(si);
-		si.addFilename(filename);
+		si.addFileInfo(fileInfo);
 		serverList.set(index, si);
 	}
 
-	public static void addFile(int index, String filename) {
+	public static void addFileInfo(int index, FileInfo fileInfo) {
 		ServerInfo si = serverList.get(index);
-		si.addFilename(filename);
+		si.addFileInfo(fileInfo);
 		serverList.set(index, si);
 	}
 

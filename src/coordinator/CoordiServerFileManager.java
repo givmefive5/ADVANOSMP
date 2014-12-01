@@ -28,9 +28,15 @@ public class CoordiServerFileManager {
 				index = index - ServerHandler.totalNumberOfServers();
 			}
 			ServerInfo si = ServerHandler.get(index);
-			saveFileContent(si.getIpAddress(), si.getPortNumber(), filename,
-					content);
-			ServerHandler.addFile(index, filename);
+			FileInfo fileInfo;
+			if (si.isAlive()) {
+				saveFileContent(si.getIpAddress(), si.getPortNumber(),
+						filename, content);
+				fileInfo = new FileInfo(filename, true);
+			} else {
+				fileInfo = new FileInfo(filename, false);
+			}
+			ServerHandler.addFileInfo(index, fileInfo);
 			count++;
 		}
 
