@@ -54,7 +54,7 @@ public class ServerMain {
 				new ServerSaveFileThread(socket, in).start();
 			} else if (firstLine.equals("LOAD FILE")) {
 				// server threads would send out IDs along with the word Server
-				new ServerLoadFileThread(socket).start();
+				new ServerLoadFileThread(socket, in).start();
 			}
 		}
 	}

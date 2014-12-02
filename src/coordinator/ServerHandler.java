@@ -99,4 +99,8 @@ public class ServerHandler {
 	public static int totalNumberOfServers() {
 		return totalServers;
 	}
+
+	public static List<ServerInfo> getServerInfos() {
+		return serverList;
+	}
 }

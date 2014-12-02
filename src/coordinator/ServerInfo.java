@@ -9,7 +9,7 @@ public class ServerInfo {
 	private String ipAddress;
 	private int portNumber;
 	private boolean isAlive;
-	private final List<FileInfo> fileInfos;
+	private List<FileInfo> fileInfos;
 
 	public ServerInfo(String addressWithPortNumber, String ipAddress,
 			int portNumber, boolean isAlive) {
@@ -69,5 +69,28 @@ public class ServerInfo {
 
 	public void addFileInfo(FileInfo fileInfo) {
 		fileInfos.add(fileInfo);
+	}
+
+	private FileInfo get(String filename) {
+		for (FileInfo fi : fileInfos) {
+			if (fi.getFilename().equals(filename))
+				return fi;
+		}
+		return null;
+	}
+
+	public boolean hasFile(String filename) {
+		if (get(filename) != null)
+			return true;
+		else
+			return false;
+	}
+
+	public boolean isReady(String filename) {
+		FileInfo fi = get(filename);
+		if (fi.isHasAdded())
+			return true;
+		else
+			return false;
 	}
 }

@@ -43,6 +43,7 @@ public class ClientHandlerThread extends Thread {
 		String folderPath = "Server";
 		for (File f : files) {
 			// signal that that's the end of a file
+			CoordiServerFileManager.loadFileContent(f.getName());
 			out.println(f.getName() + "###" + f.lastModified() + "###"
 					+ FileManager.readFile(f) + "~!@#$");
 		}
