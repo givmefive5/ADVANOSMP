@@ -1,5 +1,7 @@
 package coordinator;
 
+import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,7 +11,7 @@ public class ServerHandler {
 	private static int activeCount = 0;
 	private static List<ServerInfo> serverList = new ArrayList<>();
 
-	public static void addNewServer(String addressWithPortNumber) {
+	public static synchronized void addNewServer(String addressWithPortNumber) {
 		String[] tokens = addressWithPortNumber.split(":");
 		String ipAddress = tokens[0];
 		int portNumber = Integer.valueOf(tokens[1]);
@@ -42,7 +44,8 @@ public class ServerHandler {
 		return serverList.get(index);
 	}
 
-	public static void setServerActive(String addressWithPortNumber) {
+	public static void setServerActive(String addressWithPortNumber)
+			throws UnknownHostException, IOException {
 		ServerInfo si = get(addressWithPortNumber);
 		int index = serverList.indexOf(si);
 		si.setAlive(true);
@@ -51,6 +54,12 @@ public class ServerHandler {
 		System.out.println("Set " + si.getIpAddress() + " "
 				+ si.getPortNumber() + " " + si.isAlive());
 
+		incrementActiveCount();
+
+		CoordiServerFileManager.recoverMissingFilesOfServer(si);
+	}
+
+	private synchronized static void incrementActiveCount() {
 		activeCount++;
 	}
 
@@ -63,6 +72,10 @@ public class ServerHandler {
 		System.out.println("Set " + si.getIpAddress() + " "
 				+ si.getPortNumber() + " " + si.isAlive());
 
+		decrementActiveCount();
+	}
+
+	private synchronized static void decrementActiveCount() {
 		activeCount--;
 	}
 

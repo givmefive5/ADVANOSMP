@@ -157,4 +157,28 @@ public class CoordiServerFileManager {
 		}
 		return null;
 	}
+
+	public static void recoverMissingFilesOfServer(ServerInfo si)
+			throws UnknownHostException, IOException {
+		String[] unsavedFiles = getUnsavedFiles(si);
+
+		for (String unsavedFile : unsavedFiles) {
+			// from other server
+			String content = loadFileContent(unsavedFile);
+			saveFileContent(si.getIpAddress(), si.getPortNumber(), unsavedFile,
+					content);
+		}
+	}
+
+	public static String[] getUnsavedFiles(ServerInfo si) {
+		List<FileInfo> files = si.getFileInfos();
+
+		List<String> unsavedFiles = new ArrayList<>();
+		for (FileInfo fi : files) {
+			if (fi.isHasAdded() == false)
+				unsavedFiles.add(fi.getFilename());
+		}
+
+		return unsavedFiles.toArray(new String[unsavedFiles.size()]);
+	}
 }
