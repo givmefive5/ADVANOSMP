@@ -18,8 +18,14 @@ public class CoordiServerFileManager {
 	private static Map<String, Long> lastModified = new HashMap<>();
 
 	public static List<String> getAllFilenamesFromServers() {
+		return new ArrayList<String>(lastModified.keySet());
+	}
 
-		return null;
+	public static boolean fileExists(String filename) {
+		if (lastModified.get(filename) == null)
+			return false;
+		else
+			return true;
 	}
 
 	public static void saveFile(String filename, String content)
@@ -110,6 +116,7 @@ public class CoordiServerFileManager {
 			}
 		}
 		socket.close();
+		lastModified.put(filename, System.currentTimeMillis());
 	}
 
 	public static String loadFileContent(String filename)
@@ -138,7 +145,6 @@ public class CoordiServerFileManager {
 					sb.append(line);
 				}
 			}
-			// receive and convert as single String here
 
 		} else
 			System.out.println("No Server Found Holding the File");

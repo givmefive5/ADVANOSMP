@@ -1,10 +1,8 @@
 package coordinator;
 
-import indie.FileManager;
 import indie.ResponseHandler;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -28,9 +26,9 @@ public class ClientHandlerThread extends Thread {
 	public void run() {
 
 		try {
-			List<File> files = receiveFiles();
+			List<String> filenames = receiveFiles();
 
-			sendFiles(files);
+			sendFiles(filenames);
 		} catch (IOException e) {
 			// Connection dropped
 			e.printStackTrace();
@@ -38,21 +36,20 @@ public class ClientHandlerThread extends Thread {
 		}
 	}
 
-	private void sendFiles(List<File> files) throws IOException {
+	private void sendFiles(List<String> filenames) throws IOException {
 		// simply sends all of the files to the server
-		String folderPath = "Server";
-		for (File f : files) {
+		for (String f : filenames) {
 			// signal that that's the end of a file
-			CoordiServerFileManager.loadFileContent(f.getName());
-			out.println(f.getName() + "###" + f.lastModified() + "###"
-					+ FileManager.readFile(f) + "~!@#$");
+			String content = CoordiFileManager.readFile(f);
+			out.println(f + "###" + System.currentTimeMillis() + "###"
+					+ content + "~!@#$");
 		}
 		// signal the server that no more files will be sent
 		out.println("END OF TRANSACTION");
 	}
 
-	private List<File> receiveFiles() throws IOException {
-		List<File> filesToSendBack = new ArrayList<>();
+	private List<String> receiveFiles() throws IOException {
+		List<String> filesToSendBack = new ArrayList<>();
 		List<String> filenamesFromClient = new ArrayList<>();
 		String line;
 		StringBuilder sb = new StringBuilder();
@@ -79,9 +76,9 @@ public class ClientHandlerThread extends Thread {
 
 				sb.append(ResponseHandler.removeEndFileDelimiter(line));
 				System.out.println(sb.toString());
-				File f = syncFile(filename, dateModified, sb.toString());
-				if (f != null)
-					filesToSendBack.add(f);
+				String s = syncFile(filename, dateModified, sb.toString());
+				if (s != null)
+					filesToSendBack.add(s);
 
 				sb = new StringBuilder();
 			} else if (ResponseHandler.isStartOfFile(line)) {
@@ -103,9 +100,9 @@ public class ClientHandlerThread extends Thread {
 				// the next file
 				sb.append(ResponseHandler.removeEndFileDelimiter(line));
 				System.out.println(sb.toString());
-				File f = syncFile(filename, dateModified, sb.toString());
-				if (f != null)
-					filesToSendBack.add(f);
+				String s = syncFile(filename, dateModified, sb.toString());
+				if (s != null)
+					filesToSendBack.add(s);
 
 				sb = new StringBuilder();
 			} else
@@ -118,13 +115,13 @@ public class ClientHandlerThread extends Thread {
 
 		}
 
-		List<File> filesOfServer = CoordiFileManager
+		List<String> filesOfServer = CoordiFileManager
 				.findFilesFromServerToGiveBackToClient(filenamesFromClient);
 		filesToSendBack.addAll(filesOfServer);
 		return filesToSendBack;
 	}
 
-	private File syncFile(String filename, Timestamp t, String content)
+	private String syncFile(String filename, Timestamp t, String content)
 			throws IOException {
 
 		// lock for mutex for critical section
@@ -132,17 +129,13 @@ public class ClientHandlerThread extends Thread {
 		// writes if client has a later copy.
 		if (CoordiFileManager.clientHasALaterCopy(filename, t)) {
 			System.out.println("Receiving: " + filename + " " + t);
-			File f = new File(CoordiFileManager.folderLocation + filename);
-			CoordiFileManager.writeToFile(f, content);
-			CoordiServerFileManager.saveFile(filename, content);
-			System.out.println("Finished writing " + f.getAbsolutePath());
+			CoordiFileManager.writeToFile(filename, content);
+			System.out.println("Finished writing " + filename);
 			CoordiFileManager.releaseLockOfFile(filename);
 			return null;
 		} else {
-			// adds it to a file list that will be sent back to the client
-			File f = new File(CoordiFileManager.folderLocation + filename);
 			CoordiFileManager.releaseLockOfFile(filename);
-			return f;
+			return filename;
 		}
 
 	}

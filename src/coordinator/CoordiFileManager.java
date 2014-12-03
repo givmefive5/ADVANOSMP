@@ -1,28 +1,28 @@
 package coordinator;
 
-import indie.FileManager;
-
-import java.io.File;
+import java.io.IOException;
+import java.net.UnknownHostException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class CoordiFileManager extends FileManager {
+public class CoordiFileManager {
 
-	public static String folderLocation = "Server/";
+	// public static String folderLocation = "Server/";
 
 	private static HashMap<String, Monitor> fileMap = new HashMap<>();
 
-	public static List<File> findFilesFromServerToGiveBackToClient(
+	public static List<String> findFilesFromServerToGiveBackToClient(
 			List<String> filenamesFromClient) {
-		List<File> filesOfServer = new ArrayList<>();
+		List<String> filesOfServer = new ArrayList<>();
 
-		File folder = new File(folderLocation);
-		File[] listOfFiles = folder.listFiles();
-
-		for (File f : listOfFiles) {
-			if (!filenamesFromClient.contains(f.getName()))
+		// File folder = new File(folderLocation);
+		// File[] listOfFiles = folder.listFiles();
+		List<String> filenames = CoordiServerFileManager
+				.getAllFilenamesFromServers();
+		for (String f : filenames) {
+			if (!filenamesFromClient.contains(f))
 				filesOfServer.add(f);
 		}
 
@@ -32,17 +32,20 @@ public class CoordiFileManager extends FileManager {
 	// will load all files from Server folder and assign each a monitor for
 	// mutex.
 	public static void initializeFileLocks() {
-		File folder = new File(folderLocation);
-		File[] listOfFiles = folder.listFiles();
-		for (File f : listOfFiles) {
-			String filename = f.getName();
-			fileMap.put(filename, new Monitor());
+		// File folder = new File(folderLocation);
+		// File[] listOfFiles = folder.listFiles();
+		List<String> filenames = CoordiServerFileManager
+				.getAllFilenamesFromServers();
+		for (String f : filenames) {
+			fileMap.put(f, new Monitor());
 		}
 	}
 
 	public static boolean clientHasALaterCopy(String filename, Timestamp t) {
-		File serverFile = new File(folderLocation + filename);
-		if (!serverFile.exists() || t.getTime() > serverFile.lastModified())
+		// File serverFile = new File(folderLocation + filename);
+		Long serverTime = CoordiServerFileManager.getTimeLastModified(filename);
+		if (!CoordiServerFileManager.fileExists(filename)
+				|| t.getTime() > serverTime)
 			return true;
 		else
 			return false;
@@ -68,5 +71,15 @@ public class CoordiFileManager extends FileManager {
 
 		// get monitor of file from filemap
 		// release lock
+	}
+
+	public static void writeToFile(String filename, String content)
+			throws UnknownHostException, IOException {
+		CoordiServerFileManager.saveFile(filename, content);
+	}
+
+	public static String readFile(String filename) throws UnknownHostException,
+			IOException {
+		return CoordiServerFileManager.loadFileContent(filename);
 	}
 }
