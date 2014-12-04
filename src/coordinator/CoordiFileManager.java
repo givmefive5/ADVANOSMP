@@ -51,6 +51,15 @@ public class CoordiFileManager {
 			return false;
 	}
 
+	public static boolean equalTimeModified(String filename, Timestamp t) {
+		// File serverFile = new File(folderLocation + filename);
+		Long serverTime = CoordiServerFileManager.getTimeLastModified(filename);
+		if (t.getTime() == serverTime)
+			return true;
+		else
+			return false;
+	}
+
 	public static synchronized void acquireLockOfFile(String filename) {
 
 		if (fileMap.get(filename) == null)
@@ -73,9 +82,9 @@ public class CoordiFileManager {
 		// release lock
 	}
 
-	public static void writeToFile(String filename, String content)
-			throws UnknownHostException, IOException {
-		CoordiServerFileManager.saveFile(filename, content);
+	public static void writeToFile(String filename, String content,
+			Timestamp lastModified) throws UnknownHostException, IOException {
+		CoordiServerFileManager.saveFile(filename, content, lastModified);
 	}
 
 	public static String readFile(String filename) throws UnknownHostException,

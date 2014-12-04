@@ -129,8 +129,11 @@ public class ClientHandlerThread extends Thread {
 		// writes if client has a later copy.
 		if (CoordiFileManager.clientHasALaterCopy(filename, t)) {
 			System.out.println("Receiving: " + filename + " " + t);
-			CoordiFileManager.writeToFile(filename, content);
+			CoordiFileManager.writeToFile(filename, content, t);
 			System.out.println("Finished writing " + filename);
+			CoordiFileManager.releaseLockOfFile(filename);
+			return null;
+		} else if (CoordiFileManager.equalTimeModified(filename, t)) {
 			CoordiFileManager.releaseLockOfFile(filename);
 			return null;
 		} else {

@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,13 +29,15 @@ public class CoordiServerFileManager {
 			return true;
 	}
 
-	public static void saveFile(String filename, String content)
-			throws UnknownHostException, IOException {
+	public static void saveFile(String filename, String content,
+			Timestamp timeLastModified) throws UnknownHostException,
+			IOException {
 
 		if (lastModified.get(filename) != null)
 			saveOldFile(filename, content);
 		else
 			saveNewFile(filename, content);
+		lastModified.put(filename, timeLastModified.getTime());
 	}
 
 	private static void saveOldFile(String filename, String content)
@@ -89,7 +92,6 @@ public class CoordiServerFileManager {
 			ServerHandler.addFileInfo(index, fileInfo);
 			count++;
 		}
-		lastModified.put(filename, System.currentTimeMillis());
 		indexForSavingFile++;
 		if (indexForSavingFile == ServerHandler.totalNumberOfServers())
 			indexForSavingFile = 0;
