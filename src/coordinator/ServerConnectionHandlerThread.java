@@ -20,9 +20,9 @@ public class ServerConnectionHandlerThread extends Thread {
 
 		if (!ServerHandler.exists(addressWithPortNumber))
 			ServerHandler.addNewServer(addressWithPortNumber);
-		else
+		else {
 			ServerHandler.setServerActive(addressWithPortNumber);
-
+		}
 		serverInfo = ServerHandler.get(addressWithPortNumber);
 		this.socket = socket;
 		out = new PrintWriter(socket.getOutputStream(), true);

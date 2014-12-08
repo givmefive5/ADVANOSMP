@@ -6,8 +6,18 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FileManager {
+
+	public static List<String> getFileNames(File folder) {
+		List<String> list = new ArrayList<>();
+		for (File f : folder.listFiles()) {
+			list.add(f.getName());
+		}
+		return list;
+	}
 
 	public static String readFile(File file) throws IOException {
 		BufferedReader br = new BufferedReader(new FileReader(file));
@@ -42,6 +52,10 @@ public class FileManager {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public static void deleteFile(File file) throws IOException {
+		file.delete();
 	}
 
 }

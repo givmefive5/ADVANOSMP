@@ -26,13 +26,22 @@ public class ClientHandlerThread extends Thread {
 	public void run() {
 
 		try {
-			List<String> filenames = receiveFiles();
-
-			sendFiles(filenames);
+			String line = in.readLine();
+			System.out.println("Should received sync: " + line);
+			if (line.equals("Sync")) {
+				System.out.println("Sync");
+				List<String> filenames = receiveFiles();
+				sendFiles(filenames);
+				socket.close();
+			} else if (line.equals("Delete")) {
+				System.out.println("To delete");
+			}
 		} catch (IOException e) {
 			// Connection dropped
 			e.printStackTrace();
 			System.out.println("Finished Syncing");
+		} finally {
+
 		}
 	}
 

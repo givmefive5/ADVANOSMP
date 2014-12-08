@@ -57,6 +57,7 @@ public class ServerHandler {
 		incrementActiveCount();
 
 		CoordiServerFileManager.recoverMissingFilesOfServer(si);
+		CoordiServerFileManager.checkAndDeletePendingFiles();
 	}
 
 	private synchronized static void incrementActiveCount() {
@@ -115,5 +116,11 @@ public class ServerHandler {
 
 	public static List<ServerInfo> getServerInfos() {
 		return serverList;
+	}
+
+	public static void removeFileFromServer(int index, String filename) {
+		ServerInfo si = get(index);
+		si.remove(filename);
+		serverList.set(index, si);
 	}
 }

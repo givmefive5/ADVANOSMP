@@ -9,6 +9,7 @@ import java.net.UnknownHostException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -17,6 +18,8 @@ public class CoordiServerFileManager {
 	private static int indexForSavingFile = 0;
 
 	private static Map<String, Long> lastModified = new HashMap<>();
+
+	private static HashSet<String> pendingFilesToBeDeleted = new HashSet<>();
 
 	public static List<String> getAllFilenamesFromServers() {
 		return new ArrayList<String>(lastModified.keySet());
@@ -151,6 +154,47 @@ public class CoordiServerFileManager {
 		} else
 			System.out.println("No Server Found Holding the File");
 		return null;
+	}
+
+	public static void checkAndDeletePendingFiles() throws IOException {
+		for (String filename : pendingFilesToBeDeleted) {
+			deleteFile(filename);
+		}
+	}
+
+	public static void deleteFile(String filename) throws IOException {
+		ServerInfo[] serversContainingFile = getAllServersContainingFile(filename);
+		boolean hasFailed = false;
+		for (ServerInfo si : serversContainingFile) {
+			System.out.println("Deleting " + filename + " from"
+					+ si.getAddressWithPortNumber());
+			if (si.isAlive()) {
+				deleteFileFromServer(si.getIpAddress(), si.getPortNumber(),
+						filename);
+				int index = ServerHandler.getServerInfos().indexOf(si);
+				ServerHandler.removeFileFromServer(index, filename);
+			} else {
+				hasFailed = true;
+				pendingFilesToBeDeleted.add(filename);
+			}
+			System.out.println("Deleted " + filename + " from "
+					+ si.getAddressWithPortNumber());
+		}
+
+		if (hasFailed == false)
+			pendingFilesToBeDeleted.remove(filename);
+	}
+
+	private static void deleteFileFromServer(String ipAddress, int portNumber,
+			String filename) throws IOException {
+		Socket socket = new Socket(ipAddress, portNumber);
+
+		PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+		BufferedReader in = new BufferedReader(new InputStreamReader(
+				socket.getInputStream()));
+		out.println("DELETE FILE");
+		out.println(filename);
+		socket.close();
 	}
 
 	public static Long getTimeLastModified(String filename) {

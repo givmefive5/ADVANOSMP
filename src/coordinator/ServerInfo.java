@@ -93,4 +93,9 @@ public class ServerInfo {
 		else
 			return false;
 	}
+
+	public void remove(String filename) {
+		FileInfo fi = get(filename);
+		fileInfos.remove(fi);
+	}
 }

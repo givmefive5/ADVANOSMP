@@ -47,16 +47,11 @@ public class ServerMain {
 					socket.getInputStream()));
 			String firstLine = in.readLine();
 			if (firstLine.equals("SAVE FILE")) {
-				System.out.println("SAVE FILE");
-				// String line;
-				// while ((line = in.readLine()) != null)
-				// System.out.println(line);
 				new ServerSaveFileThread(socket, in).start();
 			} else if (firstLine.equals("LOAD FILE")) {
-				// server threads would send out IDs along with the word Server
 				new ServerLoadFileThread(socket, in).start();
-			}
+			} else if (firstLine.equals("DELETE FILE"))
+				new ServerDeleteFileThread(socket, in).start();
 		}
 	}
-
 }

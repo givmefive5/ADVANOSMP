@@ -21,14 +21,15 @@ public class CoordinatorMain {
 			BufferedReader in = new BufferedReader(new InputStreamReader(
 					socket.getInputStream()));
 			String firstLine = in.readLine();
-			if (firstLine.equals("Client")) {
+			if (firstLine != null && firstLine.equals("Client")) {
 				System.out.println("Client");
 				new ClientHandlerThread(socket).start();
-			} else {
+			} else if (firstLine != null) {
 				System.out.println("Server: " + firstLine);
 				String addressWithPortNumber = firstLine;
 				// server threads would send out IDs along with the word Server
-				new ServerConnectionHandlerThread(socket, addressWithPortNumber).start();
+				new ServerConnectionHandlerThread(socket, addressWithPortNumber)
+						.start();
 			}
 		}
 

@@ -12,17 +12,18 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.sql.Timestamp;
 
-public class Client {
-	private final Socket socket;
+public class ClientSaveReceive {
+	private Socket socket;
 
 	// Sending Message
-	private final BufferedReader in;
-	private final PrintWriter out;
+	private BufferedReader in;
+	private PrintWriter out;
 	public static String folderPath;
 
-	public Client(String folderPath) throws UnknownHostException, IOException {
+	public ClientSaveReceive(String folderPath) throws UnknownHostException,
+			IOException {
 
-		Client.folderPath = folderPath + "/";
+		ClientSaveReceive.folderPath = folderPath + "/";
 
 		String address = "localhost";
 		int portNumber = 4441;
@@ -32,8 +33,8 @@ public class Client {
 		in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
 		sendFiles();
-
 		receiveFiles();
+		socket.close();
 
 	}
 
@@ -99,6 +100,9 @@ public class Client {
 	private void sendFiles() throws IOException {
 		// simply sends all of the files to the server
 		out.println("Client");
+		System.out.println("Client");
+		out.println("Sync");
+		System.out.println("Sync");
 		File folder = new File(folderPath);
 		for (File f : folder.listFiles()) {
 			// signal that that's the end of a file
