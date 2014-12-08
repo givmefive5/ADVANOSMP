@@ -23,13 +23,13 @@ public class CoordinatorMain {
 			String firstLine = in.readLine();
 			if (firstLine != null && firstLine.equals("Client")) {
 				System.out.println("Client");
-				new ClientHandlerThread(socket).start();
+				new ClientHandlerThread(socket, in).start();
 			} else if (firstLine != null) {
 				System.out.println("Server: " + firstLine);
 				String addressWithPortNumber = firstLine;
 				// server threads would send out IDs along with the word Server
-				new ServerConnectionHandlerThread(socket, addressWithPortNumber)
-						.start();
+				new ServerConnectionHandlerThread(socket, in,
+						addressWithPortNumber).start();
 			}
 		}
 

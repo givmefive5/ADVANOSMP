@@ -5,6 +5,7 @@ import java.net.UnknownHostException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 public class CoordiFileManager {
@@ -22,7 +23,9 @@ public class CoordiFileManager {
 		List<String> filenames = CoordiServerFileManager
 				.getAllFilenamesFromServers();
 		for (String f : filenames) {
-			if (!filenamesFromClient.contains(f))
+			if (!filenamesFromClient.contains(f)
+					&& CoordiServerFileManager.getUpdateType(f).equals(
+							UpdateType.MODIFY))
 				filesOfServer.add(f);
 		}
 
@@ -90,5 +93,14 @@ public class CoordiFileManager {
 	public static String readFile(String filename) throws UnknownHostException,
 			IOException {
 		return CoordiServerFileManager.loadFileContent(filename);
+	}
+
+	public static void deleteFile(String filename, Timestamp timeLastModified)
+			throws IOException {
+		CoordiServerFileManager.deleteFile(filename, timeLastModified);
+	}
+
+	public static HashSet<String> getDeletedFiles() {
+		return CoordiServerFileManager.getDeletedFiles();
 	}
 }

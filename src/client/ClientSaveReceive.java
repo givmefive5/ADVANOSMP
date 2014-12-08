@@ -34,7 +34,26 @@ public class ClientSaveReceive {
 
 		sendFiles();
 		receiveFiles();
+
+		deleteFiles();
+
 		socket.close();
+
+	}
+
+	private void deleteFiles() throws IOException {
+		String startLine = in.readLine(); // START OF DELETE
+
+		String line;
+		while ((line = in.readLine()) != null) {
+			if (line.equals("END OF TRANSACTION")) {
+				// exits the loop after all files from server has been sent
+				break;
+			}
+			String filename = line;
+			File f = new File(folderPath + filename);
+			FileManager.deleteFile(f);
+		}
 
 	}
 

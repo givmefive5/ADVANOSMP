@@ -2,7 +2,6 @@ package coordinator;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
@@ -14,7 +13,7 @@ public class ServerConnectionHandlerThread extends Thread {
 	ServerInfo serverInfo;
 	String addressWithPortNumber;
 
-	public ServerConnectionHandlerThread(Socket socket,
+	public ServerConnectionHandlerThread(Socket socket, BufferedReader in,
 			String addressWithPortNumber) throws IOException {
 		this.addressWithPortNumber = addressWithPortNumber;
 
@@ -25,8 +24,8 @@ public class ServerConnectionHandlerThread extends Thread {
 		}
 		serverInfo = ServerHandler.get(addressWithPortNumber);
 		this.socket = socket;
+		this.in = in;
 		out = new PrintWriter(socket.getOutputStream(), true);
-		in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 	}
 
 	@Override

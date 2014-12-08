@@ -4,7 +4,6 @@ import indie.ResponseHandler;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.sql.Timestamp;
@@ -16,10 +15,11 @@ public class ClientHandlerThread extends Thread {
 	PrintWriter out;
 	BufferedReader in;
 
-	public ClientHandlerThread(Socket socket) throws IOException {
+	public ClientHandlerThread(Socket socket, BufferedReader in)
+			throws IOException {
 		this.socket = socket;
 		out = new PrintWriter(socket.getOutputStream(), true);
-		in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+		this.in = in;
 	}
 
 	@Override
@@ -32,9 +32,12 @@ public class ClientHandlerThread extends Thread {
 				System.out.println("Sync");
 				List<String> filenames = receiveFiles();
 				sendFiles(filenames);
+
+				askClientToDeleteFiles();
+
 				socket.close();
 			} else if (line.equals("Delete")) {
-				System.out.println("To delete");
+				deleteFiles();
 			}
 		} catch (IOException e) {
 			// Connection dropped
@@ -45,13 +48,37 @@ public class ClientHandlerThread extends Thread {
 		}
 	}
 
+	private void askClientToDeleteFiles() {
+		out.println("START OF DELETE");
+		System.out.println("Asked Client to Delete: ");
+		for (String f : CoordiServerFileManager.getDeletedFiles()) {
+			out.println(f);
+			System.out.println(f);
+		}
+		out.println("END OF TRANSACTION");
+	}
+
+	private void deleteFiles() throws IOException {
+		String line;
+		while ((line = in.readLine()) != null) {
+			if (line.equals("END OF TRANSACTION")) {
+				// exits the loop after all files from client has been sent
+				break;
+			}
+			String filename = line;
+			Timestamp timeDeleted = new Timestamp(System.currentTimeMillis());
+			CoordiFileManager.deleteFile(filename, timeDeleted);
+		}
+	}
+
 	private void sendFiles(List<String> filenames) throws IOException {
 		// simply sends all of the files to the server
 		for (String f : filenames) {
 			// signal that that's the end of a file
 			String content = CoordiFileManager.readFile(f);
-			out.println(f + "###" + System.currentTimeMillis() + "###"
-					+ content + "~!@#$");
+			if (content != null)
+				out.println(f + "###" + System.currentTimeMillis() + "###"
+						+ content + "~!@#$");
 		}
 		// signal the server that no more files will be sent
 		out.println("END OF TRANSACTION");

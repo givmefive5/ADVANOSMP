@@ -55,7 +55,10 @@ public class FileManager {
 	}
 
 	public static void deleteFile(File file) throws IOException {
-		file.delete();
+		if (file.exists()) {
+			file.delete();
+			System.out.println("Deleted " + file.getName());
+		}
 	}
 
 }

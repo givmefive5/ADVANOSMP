@@ -17,9 +17,9 @@ public class CoordiServerFileManager {
 
 	private static int indexForSavingFile = 0;
 
-	private static Map<String, Long> lastModified = new HashMap<>();
+	private static Map<String, FileUpdateInfo> lastModified = new HashMap<>();
 
-	private static HashSet<String> pendingFilesToBeDeleted = new HashSet<>();
+	private static HashSet<String> filesDeleted = new HashSet<>();
 
 	public static List<String> getAllFilenamesFromServers() {
 		return new ArrayList<String>(lastModified.keySet());
@@ -35,12 +35,14 @@ public class CoordiServerFileManager {
 	public static void saveFile(String filename, String content,
 			Timestamp timeLastModified) throws UnknownHostException,
 			IOException {
-
-		if (lastModified.get(filename) != null)
+		if (lastModified.get(filename) != null
+				&& getUpdateType(filename).equals(UpdateType.MODIFY))
 			saveOldFile(filename, content);
 		else
 			saveNewFile(filename, content);
-		lastModified.put(filename, timeLastModified.getTime());
+		lastModified.put(filename, new FileUpdateInfo(UpdateType.MODIFY,
+				timeLastModified.getTime()));
+		filesDeleted.remove(filename);
 	}
 
 	private static void saveOldFile(String filename, String content)
@@ -121,7 +123,6 @@ public class CoordiServerFileManager {
 			}
 		}
 		socket.close();
-		lastModified.put(filename, System.currentTimeMillis());
 	}
 
 	public static String loadFileContent(String filename)
@@ -157,12 +158,20 @@ public class CoordiServerFileManager {
 	}
 
 	public static void checkAndDeletePendingFiles() throws IOException {
-		for (String filename : pendingFilesToBeDeleted) {
+		for (String filename : filesDeleted) {
 			deleteFile(filename);
 		}
 	}
 
-	public static void deleteFile(String filename) throws IOException {
+	public static void deleteFile(String filename, Timestamp timeLastModified)
+			throws IOException {
+		deleteFile(filename);
+		lastModified.put(filename, new FileUpdateInfo(UpdateType.DELETE,
+				timeLastModified.getTime()));
+		filesDeleted.add(filename);
+	}
+
+	private static void deleteFile(String filename) throws IOException {
 		ServerInfo[] serversContainingFile = getAllServersContainingFile(filename);
 		boolean hasFailed = false;
 		for (ServerInfo si : serversContainingFile) {
@@ -173,16 +182,10 @@ public class CoordiServerFileManager {
 						filename);
 				int index = ServerHandler.getServerInfos().indexOf(si);
 				ServerHandler.removeFileFromServer(index, filename);
-			} else {
-				hasFailed = true;
-				pendingFilesToBeDeleted.add(filename);
 			}
 			System.out.println("Deleted " + filename + " from "
 					+ si.getAddressWithPortNumber());
 		}
-
-		if (hasFailed == false)
-			pendingFilesToBeDeleted.remove(filename);
 	}
 
 	private static void deleteFileFromServer(String ipAddress, int portNumber,
@@ -198,7 +201,17 @@ public class CoordiServerFileManager {
 	}
 
 	public static Long getTimeLastModified(String filename) {
-		return lastModified.get(filename);
+		if (lastModified.get(filename) != null)
+			return lastModified.get(filename).getLastModified();
+		else
+			return null;
+	}
+
+	public static UpdateType getUpdateType(String filename) {
+		if (lastModified.get(filename) != null)
+			return lastModified.get(filename).getUpdateType();
+		else
+			return null;
 	}
 
 	private static ServerInfo findServerThatHasFile(String filename) {
@@ -232,5 +245,9 @@ public class CoordiServerFileManager {
 		}
 
 		return unsavedFiles.toArray(new String[unsavedFiles.size()]);
+	}
+
+	public static HashSet<String> getDeletedFiles() {
+		return filesDeleted;
 	}
 }
