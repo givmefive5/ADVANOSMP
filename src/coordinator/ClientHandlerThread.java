@@ -49,7 +49,7 @@ public class ClientHandlerThread extends Thread {
 				askClientToDeleteFiles();
 			}
 
-		} catch (JSONException | IOException e) {
+		} catch (JSONException | IOException | ClassNotFoundException e) {
 			e.printStackTrace();
 		}
 	}
@@ -64,7 +64,9 @@ public class ClientHandlerThread extends Thread {
 
 		for (FileRep f : files) {
 			Timestamp timeDeleted = new Timestamp(System.currentTimeMillis());
+			CoordiFileManager.acquireLockOfFile(f.getFilename());
 			CoordiFileManager.deleteFile(f.getFilename(), timeDeleted);
+			CoordiFileManager.releaseLockOfFile(f.getFilename());
 		}
 
 		// String line;
@@ -90,20 +92,29 @@ public class ClientHandlerThread extends Thread {
 		JSONObject json = new JSONObject();
 		JSONArray jsonArray = GSONConverter.convertListToJSONArray(files);
 		json.put("files", jsonArray);
-
+		System.out.println("To Delete in Client: " + json);
 		out.writeObject(json.toString());
 		out.flush();
 
 	}
 
 	private void sendFiles(List<String> filenames) throws IOException,
-			JSONException {
+			JSONException, ClassNotFoundException {
 
 		JSONObject json = new JSONObject();
-		JSONArray jsonArray = GSONConverter.convertListToJSONArray(FileRep
-				.convertFilenamesToFileReps(filenames));
+
+		List<FileRep> files = new ArrayList<>();
+
+		for (String s : filenames) {
+			CoordiFileManager.acquireLockOfFile(s);
+			if (CoordiFileManager.isDeleted(s) == false)
+				files.add(new FileRep(s, CoordiFileManager.readFile(s)));
+			CoordiFileManager.releaseLockOfFile(s);
+		}
+
+		JSONArray jsonArray = GSONConverter.convertListToJSONArray(files);
 		json.put("files", jsonArray);
-		System.out.println("To Delete in Client: " + json);
+		System.out.println("To Sendback to Client: " + json);
 
 		out.writeObject(json.toString());
 		out.flush();
@@ -128,13 +139,18 @@ public class ClientHandlerThread extends Thread {
 		List<FileRep> files = GSONConverter.convertJSONToObjectList(
 				jsonArray.toString(), type);
 
+		List<String> filenamesFromClient = new ArrayList<>();
 		List<String> filesToSendBack = new ArrayList<>();
 		for (FileRep f : files) {
+			filenamesFromClient.add(f.getFilename());
 			String s = syncFile(f);
 			if (s != null)
 				filesToSendBack.add(s);
 		}
 
+		List<String> filesOfServer = CoordiFileManager
+				.findFilesFromServerToGiveBackToClient(filenamesFromClient);
+		filesToSendBack.addAll(filesOfServer);
 		return filesToSendBack;
 	}
 

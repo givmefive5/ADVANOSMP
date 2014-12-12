@@ -106,4 +106,8 @@ public class CoordiFileManager {
 	public static HashSet<String> getDeletedFiles() {
 		return CoordiServerFileManager.getDeletedFiles();
 	}
+
+	public static boolean isDeleted(String filename) {
+		return CoordiServerFileManager.getDeletedFiles().contains(filename);
+	}
 }
