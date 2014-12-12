@@ -5,15 +5,19 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONException;
+
 public class ClientDriver {
 
 	private static List<String> fileList = new ArrayList<>();
 
 	public static void main(String[] args) throws UnknownHostException,
-			IOException, ClassNotFoundException, InterruptedException {
+			IOException, ClassNotFoundException, InterruptedException,
+			JSONException {
 
 		while (true) {
 			new ClientDelete(args[0]);
+			System.out.println("Sync");
 			new ClientSaveReceive(args[0]);
 			Thread.sleep(6000);
 		}

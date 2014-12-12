@@ -5,6 +5,8 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONException;
+
 public class ServerHandler {
 
 	private static int totalServers = 0;
@@ -45,7 +47,8 @@ public class ServerHandler {
 	}
 
 	public static void setServerActive(String addressWithPortNumber)
-			throws UnknownHostException, IOException {
+			throws UnknownHostException, IOException, ClassNotFoundException,
+			JSONException {
 		ServerInfo si = get(addressWithPortNumber);
 		int index = serverList.indexOf(si);
 		si.setAlive(true);

@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import org.json.JSONException;
+
 public class CoordiFileManager {
 
 	// public static String folderLocation = "Server/";
@@ -86,17 +88,18 @@ public class CoordiFileManager {
 	}
 
 	public static void writeToFile(String filename, String content,
-			Timestamp lastModified) throws UnknownHostException, IOException {
+			Timestamp lastModified) throws UnknownHostException, IOException,
+			JSONException {
 		CoordiServerFileManager.saveFile(filename, content, lastModified);
 	}
 
 	public static String readFile(String filename) throws UnknownHostException,
-			IOException {
+			IOException, ClassNotFoundException, JSONException {
 		return CoordiServerFileManager.loadFileContent(filename);
 	}
 
 	public static void deleteFile(String filename, Timestamp timeLastModified)
-			throws IOException {
+			throws IOException, JSONException {
 		CoordiServerFileManager.deleteFile(filename, timeLastModified);
 	}
 

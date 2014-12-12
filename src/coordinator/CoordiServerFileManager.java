@@ -1,9 +1,10 @@
 package coordinator;
 
-import java.io.BufferedReader;
+import indie.GSONConverter;
+
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.sql.Timestamp;
@@ -12,6 +13,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+
+import model.FileRep;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class CoordiServerFileManager {
 
@@ -34,7 +40,7 @@ public class CoordiServerFileManager {
 
 	public static void saveFile(String filename, String content,
 			Timestamp timeLastModified) throws UnknownHostException,
-			IOException {
+			IOException, JSONException {
 		if (lastModified.get(filename) != null
 				&& getUpdateType(filename).equals(UpdateType.MODIFY))
 			saveOldFile(filename, content);
@@ -46,7 +52,7 @@ public class CoordiServerFileManager {
 	}
 
 	private static void saveOldFile(String filename, String content)
-			throws UnknownHostException, IOException {
+			throws UnknownHostException, IOException, JSONException {
 		ServerInfo[] serversContainingFile = getAllServersContainingFile(filename);
 		for (ServerInfo si : serversContainingFile) {
 			FileInfo fileInfo;
@@ -74,7 +80,7 @@ public class CoordiServerFileManager {
 	}
 
 	private static void saveNewFile(String filename, String content)
-			throws UnknownHostException, IOException {
+			throws UnknownHostException, IOException, JSONException {
 		int twoThirdsOfServers = ServerHandler.twoThirdsOfTotalServers();
 
 		int count = 0;
@@ -104,79 +110,122 @@ public class CoordiServerFileManager {
 
 	private static void saveFileContent(String ipAddress, int portNumber,
 			String filename, String content) throws UnknownHostException,
-			IOException {
+			IOException, JSONException {
 		Socket socket = new Socket(ipAddress, portNumber);
 
-		PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-		BufferedReader in = new BufferedReader(new InputStreamReader(
-				socket.getInputStream()));
-		out.println("SAVE FILE");
+		ObjectOutputStream out = new ObjectOutputStream(
+				socket.getOutputStream());
 
-		out.println(filename + "###" + System.currentTimeMillis() + "###"
-				+ content + "~!@#$");
-		// signal the server that no more files will be sent
-		out.println("END OF TRANSACTION");
-		String line;
-		while ((line = in.readLine()) != null) {
-			if (line.equals("FINISHED")) {
-				break;
-			}
-		}
+		JSONObject json = new JSONObject();
+		json.put("actionType", "Save");
+
+		FileRep f = new FileRep(filename, content);
+		json.put("file", GSONConverter.convertObjectToJSON(f));
+
+		out.writeObject(json.toString());
+		out.flush();
+
 		socket.close();
+		// PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+		// BufferedReader in = new BufferedReader(new InputStreamReader(
+		// socket.getInputStream()));
+		// out.println("SAVE FILE");
+		//
+		// out.println(filename + "###" + System.currentTimeMillis() + "###"
+		// + content + "~!@#$");
+		// // signal the server that no more files will be sent
+		// out.println("END OF TRANSACTION");
+		// String line;
+		// while ((line = in.readLine()) != null) {
+		// if (line.equals("FINISHED")) {
+		// break;
+		// }
+		// }
+		// socket.close();
 	}
 
 	public static String loadFileContent(String filename)
-			throws UnknownHostException, IOException {
+			throws UnknownHostException, IOException, JSONException,
+			ClassNotFoundException {
 		ServerInfo si = findServerThatHasFile(filename);
-		if (si != null) {
-			Socket socket = new Socket(si.getIpAddress(), si.getPortNumber());
-			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-			BufferedReader in = new BufferedReader(new InputStreamReader(
-					socket.getInputStream()));
-			out.println("LOAD FILE");
-			out.println(filename);
-			System.out.println("File found from "
-					+ si.getAddressWithPortNumber());
-			String line;
-			StringBuilder sb = new StringBuilder();
-			while ((line = in.readLine()) != null) {
-				if (sb.toString() != null && !sb.toString().equals("")
-						&& !line.equals("END OF TRANSACTION"))
-					sb.append("\n");
 
-				if (line.equals("END OF TRANSACTION")) {
-					System.out.println(sb.toString());
-					return sb.toString();
-				} else {
-					sb.append(line);
-				}
-			}
+		Socket socket = new Socket(si.getIpAddress(), si.getPortNumber());
 
-		} else
-			System.out.println("No Server Found Holding the File");
-		return null;
+		ObjectOutputStream out = new ObjectOutputStream(
+				socket.getOutputStream());
+
+		JSONObject json = new JSONObject();
+		json.put("actionType", "Load");
+
+		FileRep f = new FileRep(filename);
+		json.put("file", GSONConverter.convertObjectToJSON(f));
+
+		out.writeObject(json.toString());
+		out.flush();
+
+		ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+		String jsonString = (String) in.readObject();
+
+		JSONObject jsonObject = GSONConverter
+				.convertJSONStringToObject(jsonString);
+
+		FileRep fi = GSONConverter.getGSONObjectGivenJsonObject(
+				jsonObject.getJSONObject("file"), FileRep.class);
+
+		socket.close();
+
+		return fi.getContent();
+
+		// ServerInfo si = findServerThatHasFile(filename);
+		// if (si != null) {
+		// Socket socket = new Socket(si.getIpAddress(), si.getPortNumber());
+		// PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+		// BufferedReader in = new BufferedReader(new InputStreamReader(
+		// socket.getInputStream()));
+		// out.println("LOAD FILE");
+		// out.println(filename);
+		// System.out.println("File found from "
+		// + si.getAddressWithPortNumber());
+		// String line;
+		// StringBuilder sb = new StringBuilder();
+		// while ((line = in.readLine()) != null) {
+		// if (sb.toString() != null && !sb.toString().equals("")
+		// && !line.equals("END OF TRANSACTION"))
+		// sb.append("\n");
+		//
+		// if (line.equals("END OF TRANSACTION")) {
+		// System.out.println(sb.toString());
+		// return sb.toString();
+		// } else {
+		// sb.append(line);
+		// }
+		// }
+		//
+		// } else
+		// System.out.println("No Server Found Holding the File");
+		// return null;
 	}
 
-	public static void checkAndDeletePendingFiles() throws IOException {
+	public static void checkAndDeletePendingFiles() throws IOException,
+			JSONException {
 		for (String filename : filesDeleted) {
 			deleteFile(filename);
 		}
 	}
 
 	public static void deleteFile(String filename, Timestamp timeLastModified)
-			throws IOException {
+			throws IOException, JSONException {
 		deleteFile(filename);
 		lastModified.put(filename, new FileUpdateInfo(UpdateType.DELETE,
 				timeLastModified.getTime()));
 		filesDeleted.add(filename);
 	}
 
-	private static void deleteFile(String filename) throws IOException {
+	private static void deleteFile(String filename) throws IOException,
+			JSONException {
 		ServerInfo[] serversContainingFile = getAllServersContainingFile(filename);
 		boolean hasFailed = false;
 		for (ServerInfo si : serversContainingFile) {
-			System.out.println("Deleting " + filename + " from"
-					+ si.getAddressWithPortNumber());
 			if (si.isAlive()) {
 				deleteFileFromServer(si.getIpAddress(), si.getPortNumber(),
 						filename);
@@ -189,15 +238,28 @@ public class CoordiServerFileManager {
 	}
 
 	private static void deleteFileFromServer(String ipAddress, int portNumber,
-			String filename) throws IOException {
+			String filename) throws IOException, JSONException {
 		Socket socket = new Socket(ipAddress, portNumber);
 
-		PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-		BufferedReader in = new BufferedReader(new InputStreamReader(
-				socket.getInputStream()));
-		out.println("DELETE FILE");
-		out.println(filename);
+		ObjectOutputStream out = new ObjectOutputStream(
+				socket.getOutputStream());
+
+		JSONObject json = new JSONObject();
+		json.put("actionType", "Delete");
+
+		FileRep f = new FileRep(filename);
+		json.put("file", GSONConverter.convertObjectToJSON(f));
+
+		out.writeObject(json.toString());
+		out.flush();
+
 		socket.close();
+		// PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+		// BufferedReader in = new BufferedReader(new InputStreamReader(
+		// socket.getInputStream()));
+		// out.println("DELETE FILE");
+		// out.println(filename);
+		// socket.close();
 	}
 
 	public static Long getTimeLastModified(String filename) {
@@ -224,7 +286,8 @@ public class CoordiServerFileManager {
 	}
 
 	public static void recoverMissingFilesOfServer(ServerInfo si)
-			throws UnknownHostException, IOException {
+			throws UnknownHostException, IOException, JSONException,
+			ClassNotFoundException {
 		String[] unsavedFiles = getUnsavedFiles(si);
 
 		for (String unsavedFile : unsavedFiles) {
