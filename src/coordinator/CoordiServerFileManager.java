@@ -149,6 +149,10 @@ public class CoordiServerFileManager {
 			ClassNotFoundException {
 		ServerInfo si = findServerThatHasFile(filename);
 
+		if (si == null) {
+			System.out
+					.println("Two-thirds of the server is probably down, the entire system will now crash. =D");
+		}
 		Socket socket = new Socket(si.getIpAddress(), si.getPortNumber());
 
 		ObjectOutputStream out = new ObjectOutputStream(
