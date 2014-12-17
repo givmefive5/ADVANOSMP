@@ -34,6 +34,7 @@ public class ServerMain {
 	private static void notifyCoordinator(String myIPAddress, int myPortNumber)
 			throws UnknownHostException, IOException, JSONException {
 		Socket socket = new Socket("localhost", 4441);
+		socket.setKeepAlive(true);
 		ObjectOutputStream out = new ObjectOutputStream(
 				socket.getOutputStream());
 
@@ -52,7 +53,6 @@ public class ServerMain {
 
 		while (true) {
 			Socket socket = serverSocket.accept();
-
 			ObjectInputStream in = new ObjectInputStream(
 					socket.getInputStream());
 
