@@ -18,7 +18,7 @@ public class ServerMain {
 	public static String folderPath;
 
 	public static void main(String[] args) throws IOException, JSONException,
-			ClassNotFoundException {
+			ClassNotFoundException, InterruptedException {
 
 		String myIPAddress = "localhost";
 		int myPortNumber = Integer.valueOf(args[0]);
@@ -32,7 +32,8 @@ public class ServerMain {
 	}
 
 	private static void notifyCoordinator(String myIPAddress, int myPortNumber)
-			throws UnknownHostException, IOException, JSONException {
+			throws UnknownHostException, IOException, JSONException,
+			InterruptedException {
 		Socket socket = new Socket("localhost", 4441);
 		socket.setKeepAlive(true);
 		ObjectOutputStream out = new ObjectOutputStream(
@@ -43,6 +44,10 @@ public class ServerMain {
 		json.put("addressWithPortNumber", myIPAddress + ":" + myPortNumber);
 		out.writeObject(json.toString());
 		out.flush();
+
+		new MaintainerThread(out).start();
+		;
+
 		// out.println(myIPAddress + ":" + myPortNumber);
 		// connector between server and coordi only.
 

@@ -45,6 +45,7 @@ public class ServerConnectionHandlerThread extends Thread {
 				;
 			}
 		} catch (IOException | ClassNotFoundException e) {
+			e.printStackTrace();
 			System.out.println(addressWithPortNumber);
 			ServerHandler.setServerDied(addressWithPortNumber);
 		}
