@@ -71,22 +71,9 @@ public class ClientSaveReceive {
 		for (FileRep f : files) {
 			File file = new File(folderPath + f.getFilename());
 			FileManager.deleteFile(file);
+			ClientDriver.fileList.remove(f.getFilename());
 			System.out.println("Deleted : " + f.getFilename());
 		}
-
-		// String startLine = in.readLine(); // START OF DELETE
-		//
-		// String line;
-		// while ((line = in.readLine()) != null) {
-		// if (line.equals("END OF TRANSACTION")) {
-		// // exits the loop after all files from server has been sent
-		// break;
-		// }
-		// String filename = line;
-		// File f = new File(folderPath + filename);
-		// FileManager.deleteFile(f);
-		// }
-
 	}
 
 	private void receiveFiles() throws IOException, ClassNotFoundException,

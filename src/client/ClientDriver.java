@@ -9,7 +9,7 @@ import org.json.JSONException;
 
 public class ClientDriver {
 
-	private static List<String> fileList = new ArrayList<>();
+	public static List<String> fileList = new ArrayList<>();
 
 	public static void main(String[] args) throws UnknownHostException,
 			IOException, ClassNotFoundException, InterruptedException,
